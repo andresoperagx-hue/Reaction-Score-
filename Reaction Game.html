@@ -1,56 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reaction Game - Andrés</title>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-    h1 { margin-bottom: 10px; }
-    #gameArea {
-      position: relative;
-      background: #1e293b;
-      width: 600px;
-      height: 400px;
-      border: 3px solid #38bdf8;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .circle {
-      position: absolute;
-      border-radius: 50%;
-      background: #f43f5e;
-      cursor: pointer;
-      transition: transform 0.1s ease;
-    }
-    .circle:hover { transform: scale(1.1); }
-    #score, #clock, #timeLeft, #avgReaction { margin-top: 10px; font-size: 1.2em; }
-    #startBtn {
-      margin-top: 10px;
-      background: #22c55e;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1em;
-      transition: background 0.3s;
-    }
-    #startBtn:hover { background: #16a34a; }
-    select { margin-top: 10px; padding: 5px; font-size: 1em; border-radius: 5px; border: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction Game - Andrés</title>
+<style>
+  body {
+    background: #0f172a;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #sidebar {
+    width: 300px;
+    background: #1e293b;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #sidebar h3 { margin: 5px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 5px;
+    border-bottom: 1px solid #555;
+  }
+  #gameContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  #gameArea {
+    position: relative;
+    background: #1e293b;
+    width: 600px;
+    height: 400px;
+    border: 3px solid #38bdf8;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .circle {
+    position: absolute;
+    border-radius: 50%;
+    background: #f43f5e;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+  .circle:hover { transform: scale(1.1); }
+  #score, #clock, #timeLeft, #avgReaction { margin-top: 10px; font-size: 1.2em; }
+  #startBtn { margin-top: 10px; background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1em; transition: background 0.3s; }
+  #startBtn:hover { background: #16a34a; }
+  select, input { margin-top: 10px; padding: 5px; font-size: 1em; border-radius: 5px; border: none; width: 100%; box-sizing: border-box; }
+</style>
 </head>
 <body>
+
+<div id="sidebar">
+  <h3 id="recordsTitle">Top Players</h3>
+  <table>
+    <thead>
+      <tr>
+        <th id="userHeader">User</th>
+        <th id="scoreHeader">Score</th>
+        <th id="reactionHeader">Avg Reaction</th>
+      </tr>
+    </thead>
+    <tbody id="recordsTable"></tbody>
+  </table>
+  <input type="text" id="playerName" placeholder="Enter name">
+</div>
+
+<div id="gameContainer">
   <h1 id="title">🎯 Reaction Game - Andrés</h1>
   <div id="clock">00:00:00</div>
   <div id="timeLeft">Time left: 20s</div>
@@ -71,107 +103,141 @@
     <option value="60">1 minute</option>
     <option value="300">5 minutes</option>
   </select>
+</div>
 
-  <script>
-    const gameArea = document.getElementById('gameArea');
-    const scoreDisplay = document.getElementById('score');
-    const avgReactionDisplay = document.getElementById('avgReaction');
-    const startBtn = document.getElementById('startBtn');
-    const languageSelector = document.getElementById('languageSelector');
-    const timeSelector = document.getElementById('timeSelector');
-    const clock = document.getElementById('clock');
-    const timeLeftDisplay = document.getElementById('timeLeft');
+<script>
+const gameArea = document.getElementById('gameArea');
+const scoreDisplay = document.getElementById('score');
+const avgReactionDisplay = document.getElementById('avgReaction');
+const startBtn = document.getElementById('startBtn');
+const languageSelector = document.getElementById('languageSelector');
+const timeSelector = document.getElementById('timeSelector');
+const clock = document.getElementById('clock');
+const timeLeftDisplay = document.getElementById('timeLeft');
+const playerNameInput = document.getElementById('playerName');
+const recordsTable = document.getElementById('recordsTable');
 
-    let score = 0;
-    let circleSize = 80;
-    let playing = false;
-    let circle = null;
-    let countdown;
-    let startTime = 0;
-    let reactionTimes = [];
-    let gameTime = 20;
+let score = 0;
+let circleSize = 80;
+let playing = false;
+let circle = null;
+let countdown;
+let startTime = 0;
+let reactionTimes = [];
+let gameTime = 20;
+let currentLang = 'en';
 
-    const texts = {
-      en: { start: 'Start', playing: 'Playing...', retry: 'Retry', gameOver: 'Game Over, Andrés! Score: ', avgReaction: 'Average reaction: ', time: 'Time left: ' },
-      es: { start: 'Iniciar', playing: 'Jugando...', retry: 'Reintentar', gameOver: '¡Fin del juego, Andrés! Puntuación: ', avgReaction: 'Reacción promedio: ', time: 'Tiempo restante: ' },
-      pt: { start: 'Iniciar', playing: 'Jogando...', retry: 'Tentar novamente', gameOver: 'Fim do jogo, Andrés! Pontuação: ', avgReaction: 'Reação média: ', time: 'Tempo restante: ' }
-    };
+const texts = {
+  en: { start: 'Start', playing: 'Playing...', retry: 'Retry', gameOver: 'Game Over, Andrés! Score: ', avgReaction: 'Average reaction: ', time: 'Time left: ', user:'User', scoreHeader:'Score', reactionHeader:'Avg Reaction', placeholder:'Enter name' },
+  es: { start: 'Iniciar', playing: 'Jugando...', retry: 'Reintentar', gameOver: '¡Fin del juego, Andrés! Puntuación: ', avgReaction: 'Reacción promedio: ', time: 'Tiempo restante: ', user:'Usuario', scoreHeader:'Puntuación', reactionHeader:'Reacción promedio', placeholder:'Ingresa nombre' },
+  pt: { start: 'Iniciar', playing: 'Jogando...', retry: 'Tentar novamente', gameOver: 'Fim do jogo, Andrés! Pontuação: ', avgReaction: 'Reação média: ', time: 'Tempo restante: ', user:'Usuário', scoreHeader:'Pontuação', reactionHeader:'Reação média', placeholder:'Digite nome' }
+};
 
-    let currentLang = 'en';
+function updateClock() {
+  const now = new Date();
+  clock.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+}
+setInterval(updateClock, 1000);
 
-    function updateClock() {
-      const now = new Date();
-      clock.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-    }
+function randomPosition(max) { return Math.floor(Math.random() * max); }
 
-    setInterval(updateClock, 1000);
+function spawnCircle() {
+  if(!playing) return;
+  if(circle) circle.remove();
+  circle = document.createElement('div');
+  circle.classList.add('circle');
+  circle.style.width = circleSize+'px';
+  circle.style.height = circleSize+'px';
+  const x = randomPosition(gameArea.offsetWidth-circleSize);
+  const y = randomPosition(gameArea.offsetHeight-circleSize);
+  circle.style.left = x+'px';
+  circle.style.top = y+'px';
+  startTime = performance.now();
+  circle.addEventListener('click', hitCircle);
+  gameArea.appendChild(circle);
+}
 
-    function randomPosition(max) { return Math.floor(Math.random() * max); }
+function hitCircle() {
+  if(!playing) return;
+  const reaction = Math.round(performance.now() - startTime);
+  reactionTimes.push(reaction);
+  score++;
+  scoreDisplay.textContent = texts[currentLang].start + ' ' + score;
+  circleSize = Math.max(20, circleSize-4);
+  spawnCircle();
+}
 
-    function spawnCircle() {
-      if (!playing) return;
-      if (circle) circle.remove();
-      circle = document.createElement('div');
-      circle.classList.add('circle');
-      circle.style.width = circleSize + 'px';
-      circle.style.height = circleSize + 'px';
-      const x = randomPosition(gameArea.offsetWidth - circleSize);
-      const y = randomPosition(gameArea.offsetHeight - circleSize);
-      circle.style.left = x + 'px';
-      circle.style.top = y + 'px';
-      startTime = performance.now();
-      circle.addEventListener('click', hitCircle);
-      gameArea.appendChild(circle);
-    }
+function saveRecord(time) {
+  const name = playerNameInput.value.trim() || 'Anon';
+  const avg = reactionTimes.length ? Math.round(reactionTimes.reduce((a,b)=>a+b)/reactionTimes.length) : 0;
+  const record = {name, score, avg};
+  const key = 'records_' + time;
+  let records = JSON.parse(localStorage.getItem(key)||'[]');
+  records.push(record);
+  records.sort((a,b)=>b.score-a.score);
+  records = records.slice(0,5); // top 5
+  localStorage.setItem(key, JSON.stringify(records));
+  return records;
+}
 
-    function hitCircle() {
-      if (!playing) return;
-      const reaction = Math.round(performance.now() - startTime);
-      reactionTimes.push(reaction);
-      score++;
-      scoreDisplay.textContent = texts[currentLang].start + ' ' + score;
-      circleSize = Math.max(20, circleSize - 4);
-      spawnCircle();
-    }
+function updateRecordsTable(time) {
+  const key = 'records_' + time;
+  const records = JSON.parse(localStorage.getItem(key)||'[]');
+  recordsTable.innerHTML = '';
+  records.forEach(r=>{
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${r.name}</td><td>${r.score}</td><td>${r.avg}ms</td>`;
+    recordsTable.appendChild(row);
+  });
+}
 
-    function startGame() {
-      if (playing) return;
-      playing = true;
-      score = 0; reactionTimes = [];
-      circleSize = 80;
-      gameTime = parseInt(timeSelector.value);
-      scoreDisplay.textContent = texts[currentLang].start + ' ' + score;
-      avgReactionDisplay.textContent = texts[currentLang].avgReaction + '0ms';
-      timeLeftDisplay.textContent = texts[currentLang].time + gameTime + 's';
-      startBtn.textContent = texts[currentLang].playing;
-      spawnCircle();
+function startGame() {
+  if(playing) return;
+  playing = true;
+  score=0; reactionTimes=[]; circleSize=80;
+  gameTime = parseInt(timeSelector.value);
+  scoreDisplay.textContent = texts[currentLang].start + ' ' + score;
+  avgReactionDisplay.textContent = texts[currentLang].avgReaction+'0ms';
+  timeLeftDisplay.textContent = texts[currentLang].time+gameTime+'s';
+  startBtn.textContent = texts[currentLang].playing;
+  spawnCircle();
+  countdown = setInterval(()=>{
+    gameTime--;
+    timeLeftDisplay.textContent = texts[currentLang].time+gameTime+'s';
+    if(gameTime<=0) endGame();
+  },1000);
+}
 
-      countdown = setInterval(() => {
-        gameTime--;
-        timeLeftDisplay.textContent = texts[currentLang].time + gameTime + 's';
-        if (gameTime <= 0) endGame();
-      }, 1000);
-    }
+function endGame() {
+  playing = false;
+  clearInterval(countdown);
+  if(circle) circle.remove();
+  startBtn.textContent = texts[currentLang].retry;
+  const avg = reactionTimes.length ? Math.round(reactionTimes.reduce((a,b)=>a+b)/reactionTimes.length) : 0;
+  avgReactionDisplay.textContent = texts[currentLang].avgReaction+avg+'ms';
+  alert(texts[currentLang].gameOver + score + '\n' + texts[currentLang].avgReaction+avg+'ms');
+  const records = saveRecord(parseInt(timeSelector.value));
+  updateRecordsTable(parseInt(timeSelector.value));
+}
 
-    function endGame() {
-      playing = false;
-      clearInterval(countdown);
-      if (circle) circle.remove();
-      startBtn.textContent = texts[currentLang].retry;
-      const avg = reactionTimes.length ? Math.round(reactionTimes.reduce((a,b)=>a+b)/reactionTimes.length) : 0;
-      avgReactionDisplay.textContent = texts[currentLang].avgReaction + avg + 'ms';
-      alert(texts[currentLang].gameOver + score + '\n' + texts[currentLang].avgReaction + avg + 'ms');
-    }
+startBtn.addEventListener('click', startGame);
 
-    startBtn.addEventListener('click', startGame);
+languageSelector.addEventListener('change', ()=>{
+  currentLang = languageSelector.value;
+  startBtn.textContent = texts[currentLang].start;
+  scoreDisplay.textContent = texts[currentLang].start+' '+score;
+  avgReactionDisplay.textContent = texts[currentLang].avgReaction+(reactionTimes.length?Math.round(reactionTimes.reduce((a,b)=>a+b)/reactionTimes.length):0)+'ms';
+  timeLeftDisplay.textContent = texts[currentLang].time+gameTime+'s';
+  document.getElementById('recordsTitle').textContent = texts[currentLang].start+' '+texts[currentLang].user;
+  document.getElementById('userHeader').textContent = texts[currentLang].user;
+  document.getElementById('scoreHeader').textContent = texts[currentLang].scoreHeader;
+  document.getElementById('reactionHeader').textContent = texts[currentLang].reactionHeader;
+  playerNameInput.placeholder = texts[currentLang].placeholder;
+});
 
-    languageSelector.addEventListener('change', () => {
-      currentLang = languageSelector.value;
-      startBtn.textContent = texts[currentLang].start;
-      scoreDisplay.textContent = texts[currentLang].start + ' ' + score;
-      avgReactionDisplay.textContent = texts[currentLang].avgReaction + (reactionTimes.length ? Math.round(reactionTimes.reduce((a,b)=>a+b)/reactionTimes.length) : 0) + 'ms';
-      timeLeftDisplay.textContent = texts[currentLang].time + gameTime + 's';
-    });
-  </script>
+// Load initial records table
+updateRecordsTable(parseInt(timeSelector.value));
+timeSelector.addEventListener('change', ()=>updateRecordsTable(parseInt(timeSelector.value)));
+</script>
 </body>
 </html>
