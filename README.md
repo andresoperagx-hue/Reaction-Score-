@@ -1,30 +1,31 @@
-# 🎯 Reaction Game - Andrés
+# Reaction Game - Andrés
 
-A fast-paced reaction game made with **HTML**, **CSS**, and **JavaScript**. Click the red circle before time runs out! Each hit makes it smaller and faster. Test your reflexes, improve your timing, and challenge yourself to get the highest score in this simple yet addictive web game.
+A simple and fun web-based reaction game where you click on appearing circles as fast as possible. Each time you click a circle, it gets smaller, making it more challenging. The game tracks your score, reaction time, and lets you choose the duration and language.
 
----
+## Features
+- Adjustable game duration: 10s, 20s, 30s, 45s, 1min, 5min.
+- Real-time reaction time measurement.
+- Tracks your score and average reaction time.
+- Supports multiple languages: English, Spanish, Portuguese.
+- Displays current time according to your device's timezone.
 
-## 🕹 How to Play
+## How to Play
+1. Open `index.html` in a browser.
+2. Select your preferred language and game duration.
+3. Click the 'Start' button to begin.
+4. Click the circles as quickly as possible before time runs out.
+5. At the end, your score and average reaction time are displayed.
 
-1. Click the **Start** button to begin the game.
-2. A red circle will appear in a random position.
-3. Click the circle as fast as possible before time runs out.
-4. Each successful click increases your score and makes the circle smaller.
-5. If you fail to click in time, the game ends.
+## Tech Stack
+- HTML, CSS, JavaScript
+- Runs entirely in the browser, no backend needed.
 
----
+## Usage
+- Ideal for improving reaction speed and fun mini-game sessions.
+- Can be hosted on GitHub Pages for easy sharing.
 
-## ⚡ Features
+## License
+This project is free to use and share.
 
-- Simple, clean, and responsive design.
-- Circle gets smaller after each click, increasing difficulty.
-- Smooth animations and transitions.
-- Score displayed in real time.
-
----
-
-## 💻 Installation / Usage
-
-1. Download or clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/juego-reaccion-andres.git
+## Updates
+This game will be updated when I come up with more ideas hehe
