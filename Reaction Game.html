@@ -34,6 +34,12 @@
     padding: 5px;
     border-bottom: 1px solid #555;
   }
+  .progress-bar {
+    height: 8px;
+    background: #38bdf8;
+    border-radius: 4px;
+    margin-top: 2px;
+  }
   #gameContainer {
     flex: 1;
     display: flex;
@@ -169,13 +175,14 @@ function hitCircle() {
 
 function saveRecord(time) {
   const name = playerNameInput.value.trim() || 'Anon';
+  localStorage.setItem('playerName', name);
   const avg = reactionTimes.length ? Math.round(reactionTimes.reduce((a,b)=>a+b)/reactionTimes.length) : 0;
   const record = {name, score, avg};
   const key = 'records_' + time;
   let records = JSON.parse(localStorage.getItem(key)||'[]');
   records.push(record);
   records.sort((a,b)=>b.score-a.score);
-  records = records.slice(0,5); // top 5
+  records = records.slice(0,5);
   localStorage.setItem(key, JSON.stringify(records));
   return records;
 }
@@ -184,9 +191,10 @@ function updateRecordsTable(time) {
   const key = 'records_' + time;
   const records = JSON.parse(localStorage.getItem(key)||'[]');
   recordsTable.innerHTML = '';
+  const maxScore = records.length ? records[0].score : 1;
   records.forEach(r=>{
     const row = document.createElement('tr');
-    row.innerHTML = `<td>${r.name}</td><td>${r.score}</td><td>${r.avg}ms</td>`;
+    row.innerHTML = `<td>${r.name}</td><td>${r.score}</td><td>${r.avg}ms<div class='progress-bar' style='width:${(r.score/maxScore)*100}%'></div></td>`;
     recordsTable.appendChild(row);
   });
 }
@@ -235,7 +243,8 @@ languageSelector.addEventListener('change', ()=>{
   playerNameInput.placeholder = texts[currentLang].placeholder;
 });
 
-// Load initial records table
+// Load initial player name and records
+playerNameInput.value = localStorage.getItem('playerName') || '';
 updateRecordsTable(parseInt(timeSelector.value));
 timeSelector.addEventListener('change', ()=>updateRecordsTable(parseInt(timeSelector.value)));
 </script>
